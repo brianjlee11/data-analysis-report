@@ -1,0 +1,298 @@
+---
+title: "Corruption, Freedom of Press, and GDP per Capita"
+author: "Group H6: Brian Lee, Derek Wu, Michael Graham, Thomas Serrano, Yifan Wu"
+date: "3/02/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+source("analysis.R")
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Problem Domain Description
+
+With the current political climate, issues surrounding press freedom and governmental corruption are at an ever increasing forefront of peoples' thoughts. In this report, we wanted to analyze how these facets of governments can affect everyday people. As such, we are looking at an analyzing data that relates to the corruption levels, gdp per capita, and press freedom levels for countries all over the world. In this data set, the CPI is a corruption index score for countries given by Transparency International and takes into account various factors for how public sector resources are used for private gains. GDP per capita is the gross domestic product per person in a country. We are using it as a representation of the economic ramifications on everyday people within a country. Finally, the press freedom index is from reporters without borders and represents the ability for media to freely report and express to the public. By looking at these various measures, we can approximate effects of these indexes on each other to show their impact and indirect impacts on everyday life.
+
+### Analysis Questions
+
+1. Is there correlation between freedom of press and GDP per Capita?
+2. What is the relationship between a country's corruption level and their GDP per Capita?
+3. How Does Corruption Change Globally over time?
+4. How well does the GDP per Capita reflect a contry's overall power on the world stage?
+5. What is the relationship between country's corruption level and their level of press freedom?
+
+#### Question Justifications
+
+- By investigating the relationship between freedom of press and GDP per Capita, we can gain insight as to how the press affects a country's economic output per person, i.e. is it in a country's best economic interest to make the media freer?
+- By investigating the relationship between GDP per capita and corruption levels, we can observe how increases in corruption affect the GDP per capita of a country and vice versa. Does more money equate to more problems?
+- By investigating the corruption change globally, we can gain insight into how government corruption around the world has either improved or declined and what parts of the globe are the most corrupt and least corrupt. 
+- Some sources say that GDP per Capita can be used to reflect the quality of life in some countries. We wanted to see how well this reflected a country's power. **Can we also use GDP per capita to reflect power or is it skewed?**
+- As seen on the news, corrupt countries tend to take control of their media by owning the media centers themeselves. By investigating the relationship between country's corruption level and their level of press freedom, we wanted to see if corrupt countries do indeed have low freedom on press. 
+
+## 2. Data Description
+
+### Press Freedom Index (PFI)
+
+Freedom of Press is the right for the media to freely report and express their thoughts to the public, free of influence and pressure from governments or corporations. Freedom of press is often protected under respective country's constitution or legislative measures but many of the countries have chosen to either ignore or lack the defense again outside pressures against the media. This abuse against the media can be in forms of intimidation, imprisonment, and the government or corporation owning a media company outright. This violence against media can hurt both developed and developing countries by keeping their citizens in the dark, without any public scrutiny. 
+
+Freedom of press is crucial in the information age as without the press, government scandals and violence against its people go unnoticed and without that knowledge, its people cannot fight back against corruption and violence in their government. By analyzing press freedom index dataset, countries with high media censorship can be exposed and explore the trend of countries with unusually high media censorship rate, bringing awareness to media abuse around the world. 
+
+The Press Freedom Index is detailed record of abuses and violence against the media and press outlets, collected by specialists in various regions throughout the world. The data set is from TCdata360 but the originaly dataset is from Reporters without Borders. The abuse indicator is calculated based on data collected on the intensity of the abuse again media in the given time period, such as imprisonment of journalists, transparency, and media independence from the government. Since 2013 index, **the scores are calculated on a scale from 0 to 100, where 0 is the best and 100 is the worst score.** The calculation method takes into account of countries where abuse of media is not reported due to high governmental control over media. Here is the link to [Press Freedom Index Data](https://tcdata360.worldbank.org/indicators/h3f86901f?country=BRA&indicator=32416&viz=line_chart&years=2001,2019 "Press Freedom Index Dataset")
+
+`r knitr::kable(sample_press_freedom_data)`
+
+- Country.ISO3 = ISO3 code for the respective country
+- Indicator.Id = Id code for Press Freedom Index
+- Indicator = There are two types of indicator, Press Freedom Index which is the score the country receives for their press of freedom and there is Press Freedom Rank, which is the country's world ranking depending on their index score
+- Values under each year (X20**) represents the press freedom index 
+-All values in 2016 was null, thus left out of the analysis
+
+*Null values will be ignored when calculating central tendency measures for all features from the data*
+
+`r knitr::kable(central_tend_for_press_freedom)`
+
+- The above table is a summary of descriptive statics and central tendancy measures for the press freedom index. Average and median press freedom index score is shown for each country.
+
+```{r press_freedom_plots, echo = FALSE}
+press_freedom_histo_plot_average
+press_freedom_plot_median
+press_free_world_plot
+press_freedom_line_plot
+```
+
+There are significant outliers in the press freedom index data. Most notably, Argentina's 2003 press freedom index score was `r argentina_press_freedom_score` and Kosovo continued to show extremely high press freedom index until 2015, when the score reached `r kosovo_press_freedom_score`. These outliers significantly affected overall averages for the country and the world. Thus press freedom index that is higher than a 100 (normal range is 0 - 100) has been left out of the data analysis. 
+
+
+### Corruption Perceptions Index (CPI)
+
+This dataset contains the rank of 180 countries and terretories by their perceived levels of public sector and corruption, using 13 different surveys and expert assessment to measure this. This data spans the years 2019 to 2000 with different degrees of coverage.
+
+This information comes from Transparency International, an organization aiming at ridding the world of corruption. The CPI dataset can be found [here](https://www.transparency.org/research/cpi/overview).
+
+
+Transparency International used the following methodology to calculate the CPI:
+
+1. They **selected data from credible sources** that ranked countries on the same scale, from sources that repeat the assessment at least every two years, and that quantify perceptions of corruption in the public sector
+2. They **standardize their sources on a scale from 0-100**. 0 equals the highest level of percieved corruption while 100 equals the lowest level of percieved corruption.
+3. They **calculate the average** for countries or territories to be included. A country or territory require at least **three sources** to be included in the CPI
+4. They **report a measure of uncertainty**, they include a standard error and confidence interval associated with their scores.
+
+`r knitr::kable(head(corruption_sample_df))`
+
+Each observational unit in our data set is a country, and each variable in our data set represents the CPI score for a given year.
+Here, we have summarized the data, noting that a score of 100 is the best possible score, while a score of zero is the worst possible score. 
+
+We have removed "NA" values when doing calculations. 
+
+`r knitr::kable(corruption_summary %>%  t())`
+
+This histogram shows us that our data is a bit right skewed, but not terribly skewed. Our mean, represented by the red dotted line, is 
+`r corruption_summary["global_mean", "2019"]`
+```{r, echo=FALSE} 
+corruption_histogram
+```
+
+```{r, echo=FALSE}
+country_scores_2019
+```
+
+
+```{r, echo=FALSE}
+hole_plot
+```
+
+## GDP per Capita
+
+This dataset contains __212__ countries and the you can find the resources [here](https://data.worldbank.org/indicator/NY.GDP.PCAP.CD). The dataset contains 212 countries, and it is about collecting each country's GDP per Capita 1999-2018. Reminder: In the raw data, few countries have N/A value of GDP per Capita of some years. 
+
+The formula of calculating GDP per Capita is GDP divided by population(or GDP/Population). GDP per Capita is a good measurement of a country's economic output which depends on its population. By calculating this, we can tell a country's standard of living and people's lives qualities. 
+
+#### Top 5 and Bottom 5 Countries by GDP per Capita in 2018
+`r knitr::kable(summary_df)`
+
+The highest GDP per Capita throughout 1999-2018 is `r max(summary_df$value)`, from 
+`r summary_df[summary_df$value == max(summary_df$value), "country"]`;
+The lowest GDP per Capita throughout 1999-2018 is `r min(summary_df$value)`, from 
+`r summary_df[summary_df$value == min(summary_df$value), "country"]`.
+
+```{r,echo=FALSE}
+top_bottom_10_GDP_plot
+```
+
+It is obvious that the difference between top 5 countries and bottom 5 countries is significantly huge. 
+
+```{r,echo=FALSE}
+GDP_histo_plot
+```
+
+The __red line__ indicates where the __median__ is, and the __purpule line__ indicates where the __mean__ is. When the median value is less than mean value, the distribution is right skewed (positive skewed). This indicates that the mass of the distribution is concentrated on the left of the figure. It has a few relatively high values, means that there is only small portion of countries have high average GDP per Capita ttout throughout 1999-2018.
+
+```{r,echo=FALSE}
+GDP_box_plot
+```
+
+The boxplot is a standardized way of displaying the distribution of data based on a five number summary (“minimum”, first quartile (Q1), median, third quartile (Q3), and “maximum”). It can tell you about your outliers and what their values are. As we can see, no matter what year it is, most of the countries are outliers. 
+
+```{r,echo=FALSE}
+GDP_map
+```
+
+## 3. Specific Questions Analysis
+
+### 1. Is there a correlation between press freedom and GDP per Capita?
+
+This question works to find out if there is a correlation between level of freedom of press around the world and GDP per Capita around the world. Freedom of press is measured in *Press Freedom Index* and GDP (Gross Domestic Product) per Capita is measured in *dollars*. (See problem domain section for more details on these datasets)   
+
+For the data analysis, data for GDP per Capita and press freedom index were joined together. Then, I took the press freedom index scores from 2001 to 2018 and compared it to GDP per capita amounts from 2001 to 2018 in order to find if there was a correlation. 
+
+`r knitr::kable(top_20_sum_gdp_pfi)`
+
+**Top 20 rows from the table**
+
+**The correlation coefficient between press freedom index and GDP per Capita was `r cor_r_value`**
+
+```{r press_gdp_analysis, echo=FALSE}
+
+gdp_pfi_plot
+knitr::kable(cor_table)
+
+```
+
+From the Press Freedom Index and GDP per Capita chart, there is a downward trend, as press freedom index increases (freedom of press gets worse), GDP also declines. After the downward trend passes press freedom index of 25, it almost flat lines. There is also a strong concentration data that has low GDP and has varying degree of press freedom index. The highest GDP country, **`r high_gdp_country`**, had GDP of **`r high_gdp`** and had press freedom index of `r high_gdp_pfi`. However, the country with a highest press freedom index, **`r high_pfi_country`**, had GDP of **`r high_pfi_gdp`** and had press freedom index of **`r high_pfi`**. While these two data points do not justify that there is a correlation, it goes to show there is some relationship between press freedom index and GDP per Capita.  
+
+Statistical analysis of the correlation shows that the t-value of the correlation was **`r cor_t_value`** and when tested for statistical significance, the p-value was less than 0.001 thus the correlation coefficient, which was **`r cor_r_value`**, was statistically significant at 0.01 significance level, proving that there is correlation between Press Freedom Index and GDP Per Capita. This supported my assumption as countries with lower GDP would have higher restriction on press freedom as most countries with low GDP are developing nations with little freedom of press. However, this correlation does not prove that GDP directly affects freedom of press or press of freedom affects GDP. There may be other factors at play that affect these values and this analysis cannot 100% prove that the question is true. 
+
+
+### 2. What is the relationship between a country's corruption level and their GDP per Capita?
+
+In the Corruption Perception Index, losing points means that a country is becoming more corrupt, while losing GDP per capita means that a country's economic output per person is decreasing. We want to discover, is there any relationship between the two? **Do certain combinations of increasing and decreasing occur more frequently or is it random?**
+
+To discover this, we took the following steps:
+
+1. We **mutated** our Corurption Perception Index data and GDP per Capita data to include wether or not a country saw an increase or decrease in their "value" from one year to the next. NA values are omitted and not included in the final results.
+2. We **filtered** our data into four categories, 
+  - Rising GDP
+  - Falling GDP
+  - Rising CPI
+  - Falling CPI
+3. We then **joined** them in order to get all four possible combinations of change
+  - Rising GDP, Rising CPI
+  - Rising GDP, Falling CPI
+  - Falling GDP, Rising CPI
+  - Falling GDP, Falling CPI
+
+Through this analysis, we obtain the following data:
+`r knitr::kable(gdp_cpi_table_years_results)`
+We can observe that the most frequent occurance was a 
+`r gdp_cpi_table_years_results[gdp_cpi_table_years_results["total"] == max(gdp_cpi_table_years_results["total"]), "status"]`
+while the most infrequent occurance was 
+`r gdp_cpi_table_years_results[gdp_cpi_table_years_results["total"] == min(gdp_cpi_table_years_results["total"]), "status"]`.
+
+Here is our data summarized with plots
+```{r echo = F}
+faceted_gdp_cpi_plot
+```
+
+```{r echo = F}
+gdp_cpi_point
+```
+
+From this analysis, we can see that the most frequent change combination is a CPI Fall and GDP Fall followed by a CPI Rise and GDP Fall. From our faceted plot, we see that typically, we observe falls in GDP per capita, almost evenly split between CPI rising and falling, so not many conclusions can be drawn from this besides the fact that these two variables are not correlated. Corruption does not influence a country's GDP. With that being said, this means that the best decision for a country's citizens would be to attempt to reduce corruption. Since there is no economic downside to decreasing corruption, aiming to decrease this score would bennefit all citizens, making the country a better place to live.
+
+
+### 3. How does corruption change globally over time?
+
+The Corruption Perceptions Index is an index published by Transparency International to rank countries by their percieved level of public sector corruption. Countries are rated on a scale of 0-100, higher numbers representing less corruption.
+
+In order to get this data, we filtered the CPI for all countries into the score for each country for each year. Then we take summary statistics for all countries by year and put them into a table. Using this data, we calculated the changes in means as well as plotting the means over time. Additionally, the means CPI of each region was calculated and expressed as another plot. This allows us to group CPI by region and as a global aggregate to visualize changes and trends in the overall scheme of things.
+
+Here we have aggregated global corruption data to see how corruption has changed over time. Summary statistics for corruption at each year from 2000 to 2019 are taken and presented in the table below. 
+
+```{r Corruption table, echo=FALSE}
+knitr::kable(global_corruption, caption="Global Corruption Statistics")
+```
+
+As we can see in the table, the data looks like the average corruption index score decreased from 2000 to 2007 and increased from 2014 to 2019. The standard deviation of the global corruption index however, does seem to be shrinking thoughout the years.
+
+The means and standard deviations of the global corruption data shown below indicate the amount of corruption throughout the globe as a single aggregate. As seen with the trendline, the average corruption doesn't seem to be increasing or decreasing. 
+
+```{r Global Mean, echo=FALSE}
+plot(meanCorruption)
+```
+
+Taking a closer look at the change in the mean corruption for each year, we can visualize the progress made towards ending corruption as a global whole.
+
+```{r Change in Global Mean, echo=FALSE}
+plot(dCorruption)
+
+```
+
+As you can see, the graph shows that in general, global corruption hasn't changed much throughout the years. While the current amount of corruption has changed globally, it has quite a big of variation year to year. In total, the average corruption has changed by only `r sum(delta)` points from 2000 to 2019.
+
+```{r Change by Region, echo=FALSE}
+plot(regional_changes)
+```
+
+Here the change in global corruption is plotted by region. As we can see in this plot, the most volitile regions are ECA, MENA, and SSA. The least volitile regions are AME and WE/EU. The decrease in corruption index from 2000 to 2007 in AME, AP, and MENA compose the global decrease in those years. The recent small increases are coming from the ECA, SSA, AP, and AME regions. In general, the corruption index of the globe remains fairly consistent across time, but varies within regions. Overall, the global corruption seems to oscilate around 43 GPI points.
+
+### 4. How well does the GDP per Capita reflect a contry's overall power on the world stage?
+According to *World Population Review*'s [research](http://worldpopulationreview.com/countries/most-powerful-countries/) conducted in 2018, it ranked top 10 most powerful nations. Which are 
+
+1. United States 
+2. Russia
+3. China
+4. Germany
+5. United Kingdom
+6. France
+7. Japan
+8. Israel
+9. Saudi Arabia
+1. South Korea
+
+However, according to __World Map of 2018 GDP per Capita by Country__, many of these "superpowers" do not have quiet high GDP per Capita in 2018. Instead, some small sized countries in Europe like Switzerland and Norway has the highest GDP per Capita values on the world. __We filtered those superpower countries and top 5 GDP per Capita countries, combine them in the same data frame.__
+`r knitr::kable(combined_GDP)`
+```{r,echo=FALSE}
+combined_GDP_plot
+```
+
+It makes sense that countries in Europe are very developed, they are small in size and population. Which can generate higher GDP per Capita. Comparing to China, eventhough it has the second total GDP in the world, its large population base(1,433,783,686) dilutes GDP per Capital value. Therefore, GDP per Capita does not reflect quiet well on a contry's overall presence, but it takes a country's economic output, population, and the country's size as a whole thing into account. 
+
+### 5. What is the relationship between a country's corruption level and their level of press freedom?
+
+In this section we will discuss how the rates of government corruption in countries around the world affect the freedom of their media and press outlets. In this analysis we made use of two datasets, the "Corruption Perceptions Index" and "Press Freedom Index". We're measuring corruption and press-freedom 'rates' as indices from 0-100, with lower numbers indicating higher corruption and greater press freedom.
+
+In order to visualize the relationship between corruption and press freedom we plotted the two indices next to eachother. First, we calculated the indice averages for each country from 2001 to 2019. The data visualization below consists of these averages for 10 of the worlds most powerful countries. **For the sake of readability, we inversed the average press freedom index for this visual, meaning that a higher value equates to a more-free press.**
+
+```{r, echo = FALSE}
+plot(world_power_plot)
+```
+
+#### 15 Most Corrupt Countries
+
+This chart shows the 15 most corrupt countries in 2019, meaning those with the lowest corruption perception index.
+
+```{r, echo = FALSE}
+knitr::kable(most_corrupt_2019)
+```
+
+#### 15 Countries with the Least-Free Medias
+
+This is a chart of the 15 countries with the 'least-free' medias in 2019, meaning those with the highest press freedom index.
+
+```{r, echo = FALSE}
+knitr::kable(least_free_2019)
+```
+
+
+```{r, echo = FALSE}
+corruption_press_correlation_plot
+```
+
+**Reminder: High CPI value = Low Corruption, High PFI value = Low Restriction on Press**
+
+**The correlation coefficient between corruption perception index and press freedom index is `r corruption_press_coefficient`**
+
+Looking at the results of this analysis, we believe we've found a strong correlation between government corruption and press freedom. In the plot of world powers, the high and low ends of the spectrum support this. In the case of China and Saudi Arabia, both corruption and abuses to the media and press are very high. At the other end, pretty much all of the countries with low levels of corruption also have low levels of abuse to their press. Looking at the charts above, there are four countries that appear on both, those being **Syria , Yemen , North Korea and part of the Sudan**. We believe this is good evidence that these two indices are linked in some way.
+
+Analysis of the correlation plot above shows that the correlation has **a t-value of `r corruption_press_t_value`**. When testing for significance, the correlations p-value was less than .001, meaning that **a correlation coefficient of `r corruption_press_coefficient` is statistically significant** at a level of .01. This proves that **there is a correlation between percieved government corruption and press freedom**. While these two indices may have a correlation, this does not mean they have a causal relationship.
